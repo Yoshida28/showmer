@@ -1,0 +1,7 @@
+{
+  "name": "SHOMER",
+  "description": "SHOMER — Intelligent Sensing Technology. Before you see the threat, we sense it.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
