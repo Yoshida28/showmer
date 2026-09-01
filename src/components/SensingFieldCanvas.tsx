@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { DisturbancePulse } from '../types';
+import { DisturbancePulse, PastelThemeId } from '../types';
+import { PASTEL_THEMES } from '../utils/themes';
 
 interface SensingFieldCanvasProps {
+  themeId?: PastelThemeId;
   onTelemetryUpdate?: (data: {
     x: number;
     y: number;
@@ -26,8 +28,17 @@ interface Particle {
   energy: number;
 }
 
-export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTelemetryUpdate }) => {
+export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({
+  themeId = 'sky',
+  onTelemetryUpdate,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const themeRef = useRef(themeId);
+
+  useEffect(() => {
+    themeRef.current = themeId;
+  }, [themeId]);
+
   const mouseRef = useRef({
     x: -1000,
     y: -1000,
@@ -56,15 +67,14 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
     // Particle grid generation
     const initParticles = () => {
       const particles: Particle[] = [];
-      const spacing = window.innerWidth < 768 ? 44 : 36;
+      const spacing = window.innerWidth < 768 ? 42 : 34;
       const cols = Math.ceil(width / spacing) + 2;
       const rows = Math.ceil(height / spacing) + 2;
 
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
-          // slight subtle organic jitter
-          const ox = i * spacing + (Math.sin(i * 0.5 + j * 0.8) * 4);
-          const oy = j * spacing + (Math.cos(i * 0.7 + j * 0.4) * 4);
+          const ox = i * spacing + Math.sin(i * 0.5 + j * 0.8) * 3;
+          const oy = j * spacing + Math.cos(i * 0.7 + j * 0.4) * 3;
           particles.push({
             x: ox,
             y: oy,
@@ -72,9 +82,9 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
             originY: oy,
             vx: 0,
             vy: 0,
-            size: Math.random() < 0.08 ? 1.4 : 0.8,
-            baseAlpha: Math.random() * 0.14 + 0.04,
-            alpha: 0.06,
+            size: Math.random() < 0.1 ? 1.5 : 0.9,
+            baseAlpha: Math.random() * 0.18 + 0.08,
+            alpha: 0.1,
             pulsePhase: Math.random() * Math.PI * 2,
             energy: 0,
           });
@@ -106,7 +116,7 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
       const dx = e.clientX - mouseRef.current.prevX;
       const dy = e.clientY - mouseRef.current.prevY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const instantSpeed = (dist / dt) * 100; // pixels per decisecond
+      const instantSpeed = (dist / dt) * 100;
 
       mouseRef.current.targetX = e.clientX;
       mouseRef.current.targetY = e.clientY;
@@ -116,16 +126,16 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
       mouseRef.current.isMoving = true;
       mouseRef.current.lastMoveTime = now;
 
-      // Spawn micro ripple if fast enough
-      if (instantSpeed > 45 && Math.random() < 0.22) {
+      // Spawn subtle ripple if moving
+      if (instantSpeed > 45 && Math.random() < 0.2) {
         pulsesRef.current.push({
           id: Math.random().toString(36),
           x: e.clientX,
           y: e.clientY,
           radius: 2,
-          maxRadius: Math.min(180, 50 + instantSpeed * 0.8),
-          opacity: 0.28,
-          speed: 2.2,
+          maxRadius: Math.min(160, 40 + instantSpeed * 0.7),
+          opacity: 0.35,
+          speed: 2.0,
           type: 'cursor',
         });
       }
@@ -147,9 +157,9 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
         x: e.clientX,
         y: e.clientY,
         radius: 4,
-        maxRadius: 260,
-        opacity: 0.65,
-        speed: 4.5,
+        maxRadius: 240,
+        opacity: 0.6,
+        speed: 4.0,
         type: 'disturb',
       });
     };
@@ -164,19 +174,19 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
 
       for (let i = 0; i < count; i++) {
         setTimeout(() => {
-          const jitterX = count > 1 ? (Math.random() - 0.5) * (detail.spread || 200) : 0;
-          const jitterY = count > 1 ? (Math.random() - 0.5) * (detail.spread || 200) : 0;
+          const jitterX = count > 1 ? (Math.random() - 0.5) * (detail.spread || 160) : 0;
+          const jitterY = count > 1 ? (Math.random() - 0.5) * (detail.spread || 160) : 0;
           pulsesRef.current.push({
             id: Math.random().toString(36),
             x: px + jitterX,
             y: py + jitterY,
             radius: 2,
-            maxRadius: detail.maxRadius || 340,
+            maxRadius: detail.maxRadius || 300,
             opacity: detail.opacity || 0.6,
-            speed: detail.speed || 3.8,
+            speed: detail.speed || 3.5,
             type,
           });
-        }, i * (detail.stagger || 120));
+        }, i * (detail.stagger || 100));
       }
     };
 
@@ -193,6 +203,8 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
       time += 0.016;
       ctx.clearRect(0, 0, width, height);
 
+      const activeTheme = PASTEL_THEMES[themeRef.current] || PASTEL_THEMES.sky;
+
       // Smooth mouse interpolation
       const m = mouseRef.current;
       m.x += (m.targetX - m.x) * 0.18;
@@ -207,8 +219,8 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
       const now = performance.now();
       if (now - lastTelemetryEmit > 120 && onTelemetryUpdate) {
         lastTelemetryEmit = now;
-        const strain = Number((0.012 + (m.speed * 0.0008)).toFixed(4));
-        const freq = Number((12.4 + (m.speed * 0.08) + Math.sin(time) * 0.4).toFixed(1));
+        const strain = Number((0.012 + m.speed * 0.0008).toFixed(4));
+        const freq = Number((12.4 + m.speed * 0.08 + Math.sin(time) * 0.4).toFixed(1));
         onTelemetryUpdate({
           x: Math.round(m.x > 0 ? m.x : width / 2),
           y: Math.round(m.y > 0 ? m.y : height / 2),
@@ -219,23 +231,23 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
         });
       }
 
-      // Render pulses & waves
+      // Render pulses & waves in pastel tones
       const activePulses = pulsesRef.current;
       for (let i = activePulses.length - 1; i >= 0; i--) {
         const pulse = activePulses[i];
-        pulse.radius += pulse.speed || 2.5;
+        pulse.radius += pulse.speed || 2.2;
         const progress = pulse.radius / pulse.maxRadius;
-        pulse.opacity = Math.max(0, (1 - progress) * (pulse.type === 'escalate' ? 0.7 : 0.45));
+        pulse.opacity = Math.max(0, (1 - progress) * (pulse.type === 'escalate' ? 0.7 : 0.4));
 
         if (progress >= 1 || pulse.opacity <= 0.005) {
           activePulses.splice(i, 1);
           continue;
         }
 
-        // Concentric ripples
+        // Concentric ripples with pastel stroke
         ctx.beginPath();
         ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(56, 189, 248, ${pulse.opacity * 0.6})`;
+        ctx.strokeStyle = activeTheme.waveColor.replace('ALPHA', (pulse.opacity * 0.7).toFixed(3));
         ctx.lineWidth = pulse.type === 'escalate' ? 1.5 : 1;
         ctx.stroke();
 
@@ -243,7 +255,7 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
         if (pulse.radius > 20) {
           ctx.beginPath();
           ctx.arc(pulse.x, pulse.y, pulse.radius * 0.6, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(125, 211, 252, ${pulse.opacity * 0.25})`;
+          ctx.strokeStyle = activeTheme.particleColor.replace('ALPHA', (pulse.opacity * 0.3).toFixed(3));
           ctx.lineWidth = 0.6;
           ctx.stroke();
         }
@@ -265,8 +277,8 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
         if (dist < mouseRadius && m.x > 0) {
           const force = (1 - dist / mouseRadius) * (0.8 + m.speed * 0.02);
           const angle = Math.atan2(dy, dx);
-          p.vx -= Math.cos(angle) * force * 1.2;
-          p.vy -= Math.sin(angle) * force * 1.2;
+          p.vx -= Math.cos(angle) * force * 1.1;
+          p.vy -= Math.sin(angle) * force * 1.1;
           p.energy = Math.min(1, p.energy + force * 0.4);
         }
 
@@ -279,11 +291,11 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
           const ringDist = Math.abs(pDist - pulse.radius);
 
           if (ringDist < 25) {
-            const waveForce = (1 - ringDist / 25) * pulse.opacity * 1.8;
+            const waveForce = (1 - ringDist / 25) * pulse.opacity * 1.6;
             p.energy = Math.min(1, p.energy + waveForce);
             const wAngle = Math.atan2(pdy, pdx);
-            p.vx += Math.cos(wAngle) * waveForce * 0.5;
-            p.vy += Math.sin(wAngle) * waveForce * 0.5;
+            p.vx += Math.cos(wAngle) * waveForce * 0.4;
+            p.vy += Math.sin(wAngle) * waveForce * 0.4;
           }
         }
 
@@ -299,39 +311,39 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
         p.energy *= 0.94;
 
         // Subtle ambient organic breathing
-        const waveOffset = Math.sin(time * 1.2 + p.pulsePhase) * 0.02;
-        const currentAlpha = Math.min(1, p.baseAlpha + waveOffset + p.energy * 0.7);
+        const waveOffset = Math.sin(time * 1.2 + p.pulsePhase) * 0.03;
+        const currentAlpha = Math.min(1, p.baseAlpha + waveOffset + p.energy * 0.6);
 
         // Draw particle node
         ctx.beginPath();
         const r = p.size + p.energy * 1.2;
         ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
 
-        if (p.energy > 0.3) {
-          ctx.fillStyle = `rgba(56, 189, 248, ${currentAlpha})`;
-          ctx.shadowColor = 'rgba(56, 189, 248, 0.6)';
-          ctx.shadowBlur = 8;
+        if (p.energy > 0.25) {
+          ctx.fillStyle = activeTheme.waveColor.replace('ALPHA', Math.min(1, currentAlpha * 1.4).toFixed(3));
+          ctx.shadowColor = activeTheme.dotColor;
+          ctx.shadowBlur = 6;
         } else {
-          ctx.fillStyle = `rgba(186, 230, 253, ${currentAlpha})`;
+          ctx.fillStyle = activeTheme.particleColor.replace('ALPHA', currentAlpha.toFixed(3));
           ctx.shadowBlur = 0;
         }
         ctx.fill();
 
         // Connect nearby energized particles with faint optical fiber lines
         if (p.energy > 0.15 && i % 2 === 0) {
-          for (let k = i + 1; k < Math.min(i + 8, pLen); k++) {
+          for (let k = i + 1; k < Math.min(i + 7, pLen); k++) {
             const p2 = particles[k];
             const connDx = p.x - p2.x;
             const connDy = p.y - p2.y;
             const connDist = Math.sqrt(connDx * connDx + connDy * connDy);
 
             if (connDist < 55) {
-              const lineAlpha = (1 - connDist / 55) * p.energy * 0.3;
+              const lineAlpha = (1 - connDist / 55) * p.energy * 0.25;
               ctx.beginPath();
               ctx.moveTo(p.x, p.y);
               ctx.lineTo(p2.x, p2.y);
-              ctx.strokeStyle = `rgba(56, 189, 248, ${lineAlpha})`;
-              ctx.lineWidth = 0.5;
+              ctx.strokeStyle = activeTheme.waveColor.replace('ALPHA', lineAlpha.toFixed(3));
+              ctx.lineWidth = 0.6;
               ctx.stroke();
             }
           }
@@ -357,7 +369,7 @@ export const SensingFieldCanvas: React.FC<SensingFieldCanvasProps> = ({ onTeleme
     <canvas
       ref={canvasRef}
       id="shomer-sensing-field"
-      className="fixed inset-0 pointer-events-none z-0 opacity-80 transition-opacity duration-1000"
+      className="fixed inset-0 pointer-events-none z-0 opacity-70 transition-opacity duration-1000"
       aria-hidden="true"
     />
   );

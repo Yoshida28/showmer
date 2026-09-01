@@ -1,7 +1,17 @@
 import React from 'react';
+import { PastelThemeId } from '../types';
+import { PASTEL_THEMES } from '../utils/themes';
 import { sensingAudio } from '../utils/audio';
 
-export const BrandFinaleSection: React.FC = () => {
+interface BrandFinaleSectionProps {
+  themeId?: PastelThemeId;
+}
+
+export const BrandFinaleSection: React.FC<BrandFinaleSectionProps> = ({
+  themeId = 'sky',
+}) => {
+  const theme = PASTEL_THEMES[themeId] || PASTEL_THEMES.sky;
+
   const triggerLogoPulse = (e: React.MouseEvent) => {
     sensingAudio.playPulse(100, 0.6, 0.15);
     const rect = e.currentTarget.getBoundingClientRect();
@@ -27,20 +37,19 @@ export const BrandFinaleSection: React.FC = () => {
   return (
     <footer
       id="brand-finale"
-      className="relative min-h-screen py-32 px-6 md:px-12 bg-[#010306] border-t border-white/[0.06] flex flex-col justify-between items-center text-center select-none overflow-hidden"
+      className="relative min-h-[90vh] py-20 sm:py-28 px-4 sm:px-8 md:px-12 border-t border-slate-200/80 flex flex-col justify-between items-center text-center select-none overflow-hidden"
     >
-      {/* Background Deep Space Gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(10,22,34,0.4)_0%,rgba(1,3,6,1)_80%)] pointer-events-none" />
-
       {/* Top Subtle Coordinates */}
-      <div className="relative z-10 w-full max-w-6xl flex justify-between items-center text-[10px] font-mono text-slate-400 tracking-[0.25em] uppercase font-medium">
+      <div className="relative z-10 w-full max-w-6xl flex justify-between items-center text-[10px] font-mono text-slate-500 tracking-[0.2em] uppercase font-medium">
         <span>LAT: 37.7749° N</span>
-        <span className="text-sky-400/80">[ SHOMER GLOBAL INTELLIGENT SENSING ]</span>
+        <span className="font-semibold" style={{ color: theme.accent }}>
+          [ SHOMER INTELLIGENT SENSING ]
+        </span>
         <span>LON: 122.4194° W</span>
       </div>
 
       {/* Centerpiece: Wordmark & Campaign Statements */}
-      <div className="relative z-10 my-auto flex flex-col items-center max-w-4xl space-y-12">
+      <div className="relative z-10 my-auto flex flex-col items-center max-w-4xl space-y-8 sm:space-y-12">
         {/* Interactive Logo Wordmark with Center Expanding Pulse */}
         <div
           onClick={triggerLogoPulse}
@@ -49,55 +58,72 @@ export const BrandFinaleSection: React.FC = () => {
         >
           {/* Background expanding pulse ring */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="w-48 h-48 rounded-full border border-sky-400/20 animate-ping" style={{ animationDuration: '4s' }} />
-            <span className="w-80 h-80 rounded-full border border-sky-500/10 animate-pulse" />
+            <span
+              className="w-48 h-48 rounded-full border animate-ping opacity-30"
+              style={{ borderColor: theme.accent, animationDuration: '4s' }}
+            />
+            <span
+              className="w-72 h-72 rounded-full border animate-pulse opacity-20"
+              style={{ borderColor: theme.accent }}
+            />
           </div>
 
-          <h1 className="font-display text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] font-extrabold tracking-[0.2em] text-white uppercase transition-all duration-700 group-hover:text-sky-100 drop-shadow-[0_0_80px_rgba(56,189,248,0.3)]">
+          <h1
+            className="font-display text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] font-extrabold tracking-[0.18em] text-slate-900 uppercase transition-all duration-500 group-hover:scale-105"
+            style={{ textShadow: `0 4px 30px ${theme.accentLight}50` }}
+          >
             SHOMER
           </h1>
 
-          <div className="flex items-center justify-center gap-3 mt-2">
-            <span className="h-[1px] w-12 bg-sky-500/40" />
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-            <span className="h-[1px] w-12 bg-sky-500/40" />
+          <div className="flex items-center justify-center gap-3 mt-3">
+            <span className="h-[1px] w-12" style={{ backgroundColor: theme.accent }} />
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: theme.accent }} />
+            <span className="h-[1px] w-12" style={{ backgroundColor: theme.accent }} />
           </div>
         </div>
 
         {/* Campaign Lines */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <p
             id="finale-campaign-line"
-            className="font-display text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-100 uppercase"
+            className="font-display text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 uppercase"
           >
             BEFORE YOU SEE THE THREAT,
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-200 via-sky-200 to-white drop-shadow-[0_4px_20px_rgba(56,189,248,0.25)]">
+            <span style={{ color: theme.accent }}>
               WE SENSE IT.
             </span>
           </p>
 
           <p
             id="finale-positioning"
-            className="text-xs sm:text-sm font-mono tracking-[0.3em] text-sky-400 uppercase pt-2 font-bold"
+            className="text-xs sm:text-sm font-mono tracking-[0.25em] uppercase pt-1 font-bold"
+            style={{ color: theme.accent }}
           >
             SAFETY BEYOND BOUNDARIES
           </p>
         </div>
 
         {/* Coming Soon Indicator */}
-        <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-xl border border-sky-400/40 bg-sky-950/30 text-xs font-mono tracking-[0.25em] text-sky-200 uppercase shadow-[0_0_20px_rgba(56,189,248,0.15)] corner-brackets font-semibold">
-          <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8] animate-pulse" />
-          <span>COMING SOON</span>
+        <div
+          className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-xl border text-xs font-mono tracking-[0.2em] uppercase shadow-sm font-semibold"
+          style={{
+            borderColor: theme.accent,
+            backgroundColor: theme.badgeBg,
+            color: theme.badgeText,
+          }}
+        >
+          <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: theme.accent }} />
+          <span>COMING SOON // 2026</span>
         </div>
       </div>
 
       {/* Footer Minimalist Copyright & Telemetry info */}
-      <div className="relative z-10 w-full max-w-6xl flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-mono text-slate-400 border-t border-white/[0.06] pt-8 font-medium">
+      <div className="relative z-10 w-full max-w-6xl flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-mono text-slate-500 border-t border-slate-200/80 pt-6 font-medium">
         <div>© {new Date().getFullYear()} SHOMER TECHNOLOGIES INC. ALL RIGHTS RESERVED.</div>
         <div className="flex items-center gap-6">
           <span>OPTICAL REFLECTOMETRY DAS // DTS // DVS</span>
-          <span className="hidden sm:inline text-sky-400/80">RESTRICTED SPECIFICATION</span>
+          <span className="hidden sm:inline font-semibold" style={{ color: theme.accent }}>RESTRICTED SPECIFICATION</span>
         </div>
       </div>
     </footer>

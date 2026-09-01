@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { PastelThemeId } from '../types';
+import { PASTEL_THEMES } from '../utils/themes';
 import { sensingAudio } from '../utils/audio';
 
 interface SimulationWave {
@@ -12,7 +14,13 @@ interface SimulationWave {
   label?: string;
 }
 
-export const MakeDisturbanceSection: React.FC = () => {
+interface MakeDisturbanceSectionProps {
+  themeId?: PastelThemeId;
+}
+
+export const MakeDisturbanceSection: React.FC<MakeDisturbanceSectionProps> = ({
+  themeId = 'sky',
+}) => {
   const [activeControl, setActiveControl] = useState<'move' | 'disturb' | 'escalate' | null>(null);
   const [systemState, setSystemState] = useState<string>('FIELD STABLE — COHERENCE 99.98%');
   const [escalationStep, setEscalationStep] = useState<number>(0);
@@ -23,6 +31,7 @@ export const MakeDisturbanceSection: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wavesRef = useRef<SimulationWave[]>([]);
   const animRef = useRef<number | null>(null);
+  const theme = PASTEL_THEMES[themeId] || PASTEL_THEMES.sky;
 
   // Canvas render loop for the simulation sandbox
   useEffect(() => {
@@ -43,11 +52,12 @@ export const MakeDisturbanceSection: React.FC = () => {
     window.addEventListener('resize', handleResize);
 
     const render = () => {
-      ctx.fillStyle = '#010306';
+      // Clean off-white canvas bg
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, width, height);
 
-      // Draw fiber optic grid lattice
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
+      // Draw subtle grid lattice
+      ctx.strokeStyle = theme.gridColor;
       ctx.lineWidth = 1;
       const step = 40;
       for (let x = 0; x < width; x += step) {
@@ -64,7 +74,7 @@ export const MakeDisturbanceSection: React.FC = () => {
       }
 
       // Draw horizontal primary sensing cable
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.strokeStyle = theme.accent;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(0, height / 2);
@@ -73,7 +83,7 @@ export const MakeDisturbanceSection: React.FC = () => {
 
       // Nodes on the cable
       for (let x = step; x < width; x += step * 2) {
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+        ctx.fillStyle = theme.accent;
         ctx.beginPath();
         ctx.arc(x, height / 2, 2.5, 0, Math.PI * 2);
         ctx.fill();
@@ -94,7 +104,7 @@ export const MakeDisturbanceSection: React.FC = () => {
 
         ctx.beginPath();
         ctx.arc(w.x, w.y, w.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = w.color.replace('OPACITY', w.opacity.toString());
+        ctx.strokeStyle = w.color.replace('OPACITY', (w.opacity * 0.8).toString());
         ctx.lineWidth = 1.8;
         ctx.stroke();
 
@@ -114,8 +124,8 @@ export const MakeDisturbanceSection: React.FC = () => {
         ctx.fill();
 
         if (w.label) {
-          ctx.fillStyle = '#f8fafc';
-          ctx.font = '10px "IBM Plex Mono", monospace';
+          ctx.fillStyle = '#0F172A';
+          ctx.font = '10px "Space Grotesk", sans-serif';
           ctx.fillText(w.label, w.x + 8, w.y - 8);
         }
       }
@@ -129,7 +139,7 @@ export const MakeDisturbanceSection: React.FC = () => {
       if (animRef.current) cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [theme]);
 
   const addLog = (msg: string, type = 'info') => {
     const time = new Date().toTimeString().split(' ')[0];
@@ -153,7 +163,7 @@ export const MakeDisturbanceSection: React.FC = () => {
       radius: 4,
       maxRadius: 180,
       opacity: 0.9,
-      color: 'rgba(56, 189, 248, OPACITY)',
+      color: theme.particleColor,
       speed: 3.2,
       label: 'MOTION: 0.12 µε',
     });
@@ -184,7 +194,7 @@ export const MakeDisturbanceSection: React.FC = () => {
           radius: 4,
           maxRadius: 260,
           opacity: 0.95,
-          color: 'rgba(56, 189, 248, OPACITY)',
+          color: theme.particleColor,
           speed: 4.0,
           label: i === 0 ? 'VIBRATION: 44.8 Hz' : undefined,
         });
@@ -224,7 +234,7 @@ export const MakeDisturbanceSection: React.FC = () => {
           radius: 2,
           maxRadius: 320,
           opacity: 1,
-          color: 'rgba(56, 189, 248, OPACITY)',
+          color: theme.particleColor,
           speed: 4.5,
           label: `ANOMALY #${idx + 1}`,
         });
@@ -277,7 +287,7 @@ export const MakeDisturbanceSection: React.FC = () => {
       radius: 4,
       maxRadius: 220,
       opacity: 0.9,
-      color: 'rgba(56, 189, 248, OPACITY)',
+      color: theme.particleColor,
       speed: 3.5,
       label: `IMPULSE: ${Math.round(x)},${Math.round(y)}`,
     });
@@ -290,40 +300,50 @@ export const MakeDisturbanceSection: React.FC = () => {
   return (
     <section
       id="simulation"
-      className="relative min-h-screen flex flex-col justify-center px-6 md:px-16 lg:px-24 py-28 border-t border-white/[0.06] bg-[#010306] overflow-hidden"
+      className="relative min-h-[90vh] flex flex-col justify-center px-4 sm:px-8 md:px-16 lg:px-24 py-20 sm:py-28 border-t border-slate-200/80 overflow-hidden"
     >
       <div className="max-w-7xl mx-auto w-full flex flex-col items-center">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-sky-500/30 bg-sky-950/20 text-[10px] font-mono tracking-[0.25em] text-sky-300 uppercase font-semibold mb-4">
-            <span>[ 03 // INTERACTIVE SIMULATION ]</span>
+        <div className="text-center max-w-3xl mb-10 sm:mb-12">
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono tracking-[0.2em] uppercase font-semibold shadow-sm mb-4"
+            style={{ backgroundColor: theme.badgeBg, color: theme.badgeText }}
+          >
+            <span>03 // INTERACTIVE SIMULATION</span>
           </div>
 
           <h2
             id="simulation-headline"
-            className="font-display text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-tight uppercase mb-4"
+            className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight uppercase mb-4"
           >
             MAKE A DISTURBANCE.
           </h2>
 
-          <p className="text-base sm:text-lg text-slate-400 font-normal tracking-wide">
+          <p className="text-base sm:text-lg text-slate-600 font-normal leading-relaxed">
             Interact with the simulated field. Observe how the SHOMER optical continuum responds and isolates events in real time.
           </p>
         </div>
 
         {/* Interactive Simulation Console */}
-        <div className="w-full rounded-2xl border border-white/[0.08] bg-[#040812] p-6 md:p-8 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.95)] flex flex-col gap-6 corner-brackets">
+        <div className="w-full pastel-card p-5 sm:p-8 rounded-2xl flex flex-col gap-6 pastel-corners">
           {/* Top Status Banner */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-white/[0.08] gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-100 gap-4">
             <div className="flex items-center gap-3">
               <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-400 shadow-[0_0_8px_#38bdf8]" />
+                <span
+                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                  style={{ backgroundColor: theme.accent }}
+                />
+                <span
+                  className="relative inline-flex rounded-full h-2.5 w-2.5 shadow-sm"
+                  style={{ backgroundColor: theme.accent }}
+                />
               </span>
-              <span className="text-xs font-mono tracking-[0.2em] text-slate-400 uppercase font-semibold">SYSTEM TELEMETRY:</span>
+              <span className="text-xs font-mono tracking-[0.2em] text-slate-500 uppercase font-semibold">SYSTEM TELEMETRY:</span>
               <span
                 id="simulation-system-response"
-                className="text-xs sm:text-sm font-mono tracking-wider font-bold text-sky-300 uppercase bg-sky-950/50 px-3 py-1 rounded-md border border-sky-500/40 shadow-[0_0_15px_rgba(56,189,248,0.2)]"
+                className="text-xs sm:text-sm font-mono tracking-wider font-bold uppercase px-3 py-1 rounded-md shadow-sm"
+                style={{ backgroundColor: theme.badgeBg, color: theme.badgeText }}
               >
                 {systemState}
               </span>
@@ -331,15 +351,20 @@ export const MakeDisturbanceSection: React.FC = () => {
 
             {/* Sequential Escalation Step Pipeline */}
             {activeControl === 'escalate' && (
-              <div className="flex items-center gap-1.5 text-[10px] font-mono tracking-widest text-slate-400">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono tracking-wider text-slate-500">
                 {['ANALYSING', 'LOCATING', 'CLASSIFYING', 'ALERTING'].map((st, i) => (
                   <span
                     key={st}
                     className={`px-2.5 py-0.5 rounded-md font-semibold transition-all duration-300 ${
                       escalationStep >= i + 1
-                        ? 'bg-sky-500/20 text-sky-300 border border-sky-500/50 shadow-[0_0_8px_#38bdf8]'
-                        : 'text-slate-600 border border-white/[0.04]'
+                        ? 'shadow-sm font-bold'
+                        : 'text-slate-400 bg-slate-50'
                     }`}
+                    style={
+                      escalationStep >= i + 1
+                        ? { backgroundColor: theme.accent, color: '#FFFFFF' }
+                        : undefined
+                    }
                   >
                     {st}
                   </span>
@@ -349,16 +374,16 @@ export const MakeDisturbanceSection: React.FC = () => {
           </div>
 
           {/* Interactive 2D Simulation Canvas */}
-          <div className="relative w-full rounded-xl border border-white/[0.08] bg-[#010306] overflow-hidden">
+          <div className="relative w-full rounded-xl border border-slate-200/80 bg-white overflow-hidden shadow-inner">
             <canvas
               ref={canvasRef}
               onClick={handleCanvasClick}
               id="disturbance-sandbox-canvas"
-              className="w-full h-[280px] sm:h-[340px] cursor-crosshair block"
+              className="w-full h-[260px] sm:h-[320px] cursor-crosshair block"
               title="Click anywhere to generate a custom disturbance"
             />
             {/* Canvas Hint */}
-            <div className="absolute top-3 left-3 text-[9.5px] font-mono text-slate-300 tracking-[0.2em] uppercase bg-[#010306]/90 border border-white/[0.08] px-3 py-1 rounded-md backdrop-blur-md font-medium">
+            <div className="absolute top-3 left-3 text-[9px] font-mono text-slate-600 tracking-[0.15em] uppercase bg-white/90 border border-slate-200 px-3 py-1 rounded-md backdrop-blur-md font-medium shadow-sm">
               CLICK CANVAS TO INJECT SEISMIC / ACOUSTIC IMPULSE
             </div>
           </div>
@@ -369,28 +394,35 @@ export const MakeDisturbanceSection: React.FC = () => {
             <button
               onClick={triggerMove}
               id="control-move-btn"
-              className={`group p-6 rounded-xl border text-left transition-all duration-300 cursor-pointer corner-brackets ${
+              className={`group p-5 sm:p-6 rounded-xl border text-left transition-all duration-300 cursor-pointer shadow-sm ${
                 activeControl === 'move'
-                  ? 'border-sky-400 bg-sky-950/30 shadow-[0_0_25px_rgba(56,189,248,0.2)]'
-                  : 'border-white/[0.08] bg-[#010306] hover:border-sky-500/40 hover:bg-[#060c18]'
+                  ? 'border-2 shadow-md'
+                  : 'border-slate-200/80 bg-white hover:border-slate-300'
               }`}
+              style={
+                activeControl === 'move'
+                  ? { borderColor: theme.accent, backgroundColor: theme.cardHover }
+                  : undefined
+              }
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-lg border border-white/[0.1] bg-[#040812] flex items-center justify-center group-hover:border-sky-400 group-hover:bg-sky-950/40 transition-colors">
-                  {/* Custom Locomotion Vector SVG */}
-                  <svg className="w-5 h-5 text-sky-400" viewBox="0 0 24 24" fill="none">
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: theme.badgeBg }}
+                >
+                  <svg className="w-5 h-5" style={{ color: theme.accent }} viewBox="0 0 24 24" fill="none">
                     <circle cx="6" cy="18" r="2.5" fill="currentColor" />
                     <circle cx="12" cy="12" r="2.5" fill="currentColor" opacity="0.7" />
                     <circle cx="18" cy="6" r="2.5" fill="currentColor" opacity="0.4" />
                     <path d="M6 18L12 12L18 6" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 2" />
                   </svg>
                 </div>
-                <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase px-2 py-0.5 rounded bg-white/[0.04] font-semibold">MODE 01</span>
+                <span className="text-[10px] font-mono tracking-wider text-slate-500 uppercase px-2 py-0.5 rounded bg-slate-100 font-semibold">MODE 01</span>
               </div>
-              <h3 className="font-display text-xl font-bold tracking-tight text-white uppercase mb-1">
+              <h3 className="font-display text-lg sm:text-xl font-bold tracking-tight text-slate-900 uppercase mb-1">
                 MOVE
               </h3>
-              <p className="text-xs text-slate-400 tracking-normal">
+              <p className="text-xs text-slate-500 tracking-normal">
                 Simulate footstep or vehicular ground motion
               </p>
             </button>
@@ -399,25 +431,32 @@ export const MakeDisturbanceSection: React.FC = () => {
             <button
               onClick={triggerDisturb}
               id="control-disturb-btn"
-              className={`group p-6 rounded-xl border text-left transition-all duration-300 cursor-pointer corner-brackets ${
+              className={`group p-5 sm:p-6 rounded-xl border text-left transition-all duration-300 cursor-pointer shadow-sm ${
                 activeControl === 'disturb'
-                  ? 'border-sky-400 bg-sky-950/30 shadow-[0_0_25px_rgba(56,189,248,0.2)]'
-                  : 'border-white/[0.08] bg-[#010306] hover:border-sky-500/40 hover:bg-[#060c18]'
+                  ? 'border-2 shadow-md'
+                  : 'border-slate-200/80 bg-white hover:border-slate-300'
               }`}
+              style={
+                activeControl === 'disturb'
+                  ? { borderColor: theme.accent, backgroundColor: theme.cardHover }
+                  : undefined
+              }
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-lg border border-white/[0.1] bg-[#040812] flex items-center justify-center group-hover:border-sky-400 group-hover:bg-sky-950/40 transition-colors">
-                  {/* Custom Oscillation Waveform SVG */}
-                  <svg className="w-5 h-5 text-sky-400" viewBox="0 0 24 24" fill="none">
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: theme.badgeBg }}
+                >
+                  <svg className="w-5 h-5" style={{ color: theme.accent }} viewBox="0 0 24 24" fill="none">
                     <path d="M2 12C4 8 6 16 8 12C10 4 12 20 14 12C16 8 18 16 20 12L22 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                   </svg>
                 </div>
-                <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase px-2 py-0.5 rounded bg-white/[0.04] font-semibold">MODE 02</span>
+                <span className="text-[10px] font-mono tracking-wider text-slate-500 uppercase px-2 py-0.5 rounded bg-slate-100 font-semibold">MODE 02</span>
               </div>
-              <h3 className="font-display text-xl font-bold tracking-tight text-white uppercase mb-1">
+              <h3 className="font-display text-lg sm:text-xl font-bold tracking-tight text-slate-900 uppercase mb-1">
                 DISTURB
               </h3>
-              <p className="text-xs text-slate-400 tracking-normal">
+              <p className="text-xs text-slate-500 tracking-normal">
                 Inject structural vibrations & fence strain
               </p>
             </button>
@@ -426,39 +465,46 @@ export const MakeDisturbanceSection: React.FC = () => {
             <button
               onClick={triggerEscalate}
               id="control-escalate-btn"
-              className={`group p-6 rounded-xl border text-left transition-all duration-300 cursor-pointer corner-brackets ${
+              className={`group p-5 sm:p-6 rounded-xl border text-left transition-all duration-300 cursor-pointer shadow-sm ${
                 activeControl === 'escalate'
-                  ? 'border-sky-400 bg-sky-950/30 shadow-[0_0_25px_rgba(56,189,248,0.2)]'
-                  : 'border-white/[0.08] bg-[#010306] hover:border-sky-500/40 hover:bg-[#060c18]'
+                  ? 'border-2 shadow-md'
+                  : 'border-slate-200/80 bg-white hover:border-slate-300'
               }`}
+              style={
+                activeControl === 'escalate'
+                  ? { borderColor: theme.accent, backgroundColor: theme.cardHover }
+                  : undefined
+              }
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-lg border border-white/[0.1] bg-[#040812] flex items-center justify-center group-hover:border-sky-400 group-hover:bg-sky-950/40 transition-colors">
-                  {/* Custom Threat Crosshair SVG */}
-                  <svg className="w-5 h-5 text-sky-400" viewBox="0 0 24 24" fill="none">
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: theme.badgeBg }}
+                >
+                  <svg className="w-5 h-5" style={{ color: theme.accent }} viewBox="0 0 24 24" fill="none">
                     <path d="M12 2L2 22H22L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
                     <line x1="12" y1="9" x2="12" y2="15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                     <circle cx="12" cy="18" r="1" fill="currentColor" />
                   </svg>
                 </div>
-                <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase px-2 py-0.5 rounded bg-white/[0.04] font-semibold">MODE 03</span>
+                <span className="text-[10px] font-mono tracking-wider text-slate-500 uppercase px-2 py-0.5 rounded bg-slate-100 font-semibold">MODE 03</span>
               </div>
-              <h3 className="font-display text-xl font-bold tracking-tight text-white uppercase mb-1">
+              <h3 className="font-display text-lg sm:text-xl font-bold tracking-tight text-slate-900 uppercase mb-1">
                 ESCALATE
               </h3>
-              <p className="text-xs text-slate-400 tracking-normal">
+              <p className="text-xs text-slate-500 tracking-normal">
                 Multi-point perimeter intrusion classification
               </p>
             </button>
           </div>
 
           {/* Micro Telemetry Log Console */}
-          <div className="p-3.5 bg-[#010306] rounded-xl border border-white/[0.08] text-[11px] font-mono text-slate-400 space-y-1.5">
+          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 text-[11px] font-mono text-slate-600 space-y-1">
             {logEvents.map((log) => (
-              <div key={log.id} className="flex items-center gap-3">
-                <span className="text-slate-500">[{log.time}]</span>
-                <span className="text-sky-400 font-bold">»</span>
-                <span className="text-slate-300 font-medium">{log.msg}</span>
+              <div key={log.id} className="flex items-center gap-2.5">
+                <span className="text-slate-400">[{log.time}]</span>
+                <span className="font-bold" style={{ color: theme.accent }}>»</span>
+                <span className="text-slate-700 font-medium">{log.msg}</span>
               </div>
             ))}
           </div>

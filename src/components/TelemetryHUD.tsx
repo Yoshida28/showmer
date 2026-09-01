@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { TelemetryState } from '../types';
+import { PastelThemeId, TelemetryState } from '../types';
+import { PASTEL_THEMES } from '../utils/themes';
 
 interface TelemetryHUDProps {
   telemetry: TelemetryState;
+  themeId?: PastelThemeId;
 }
 
-export const TelemetryHUD: React.FC<TelemetryHUDProps> = ({ telemetry }) => {
+export const TelemetryHUD: React.FC<TelemetryHUDProps> = ({
+  telemetry,
+  themeId = 'sky',
+}) => {
   const [visibleMessage, setVisibleMessage] = useState<string | null>(null);
   const [lastMessageTime, setLastMessageTime] = useState(0);
+  const theme = PASTEL_THEMES[themeId] || PASTEL_THEMES.sky;
 
   useEffect(() => {
     // When movement or speed spikes, trigger an intelligent micro-system message
@@ -38,25 +44,36 @@ export const TelemetryHUD: React.FC<TelemetryHUDProps> = ({ telemetry }) => {
       {/* Floating System Disturbance Alert Badge (Appears dynamically) */}
       <div
         id="telemetry-toast-hud"
-        className={`fixed bottom-6 left-6 z-40 transition-all duration-500 transform ${
+        className={`fixed bottom-5 left-5 z-40 transition-all duration-300 transform ${
           visibleMessage
             ? 'opacity-100 translate-y-0'
-            : 'opacity-0 translate-y-3 pointer-events-none'
+            : 'opacity-0 translate-y-2 pointer-events-none'
         }`}
       >
-        <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-sky-500/40 bg-[#040812]/95 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.9),0_0_20px_rgba(56,189,248,0.2)] corner-brackets">
+        <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-slate-200/90 bg-white/95 backdrop-blur-xl shadow-md pastel-corners">
           <div className="relative flex items-center justify-center">
-            <svg className="w-3.5 h-3.5 text-sky-400 animate-spin" style={{ animationDuration: '4s' }} viewBox="0 0 16 16" fill="none">
+            <svg
+              className="w-3.5 h-3.5 animate-spin"
+              style={{ color: theme.accent, animationDuration: '4s' }}
+              viewBox="0 0 16 16"
+              fill="none"
+            >
               <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.2" strokeDasharray="4 2" />
               <circle cx="8" cy="8" r="2" fill="currentColor" />
             </svg>
-            <span className="absolute inset-0 rounded-full bg-sky-400/20 animate-ping" />
+            <span
+              className="absolute inset-0 rounded-full animate-ping opacity-30"
+              style={{ backgroundColor: theme.accent }}
+            />
           </div>
           <div className="flex flex-col">
-            <span className="text-[8.5px] font-mono tracking-[0.25em] text-sky-400 uppercase font-bold">
-              SHOMER SENSING SYSTEM
+            <span
+              className="text-[8.5px] font-mono tracking-[0.2em] uppercase font-bold"
+              style={{ color: theme.accent }}
+            >
+              SHOMER SENSING
             </span>
-            <span className="text-xs font-mono tracking-wider text-slate-100 font-semibold">
+            <span className="text-xs font-mono tracking-wide text-slate-800 font-semibold">
               {visibleMessage}
             </span>
           </div>
@@ -67,31 +84,36 @@ export const TelemetryHUD: React.FC<TelemetryHUDProps> = ({ telemetry }) => {
       <aside
         id="telemetry-status-panel"
         aria-label="Real-time Sensing Telemetry"
-        className="fixed bottom-6 right-6 z-40 hidden sm:flex items-center gap-4 px-4 py-2 rounded-xl border border-white/[0.08] bg-[#010306]/95 backdrop-blur-xl text-[10px] font-mono text-slate-400 shadow-2xl corner-brackets"
+        className="fixed bottom-5 right-5 z-40 hidden sm:flex items-center gap-3.5 px-3.5 py-1.5 rounded-xl border border-slate-200/90 bg-white/95 backdrop-blur-xl text-[10px] font-mono text-slate-600 shadow-sm pastel-corners"
       >
         <div className="flex items-center gap-2">
           <span
-            className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
-              telemetry.speed > 5 ? 'bg-sky-400 shadow-[0_0_8px_#38bdf8]' : 'bg-slate-600'
-            }`}
+            className="w-1.5 h-1.5 rounded-full transition-colors duration-300"
+            style={{
+              backgroundColor: telemetry.speed > 5 ? theme.accent : '#CBD5E1',
+            }}
           />
-          <span className="text-slate-200 font-medium">
+          <span className="text-slate-800 font-medium">
             X:{telemetry.x.toString().padStart(4, '0')} Y:{telemetry.y.toString().padStart(4, '0')}
           </span>
         </div>
 
-        <div className="h-3 w-[1px] bg-white/[0.08]" />
+        <div className="h-3 w-[1px] bg-slate-200" />
 
         <div className="flex items-center gap-1.5">
-          <span className="text-slate-500">VELOCITY:</span>
-          <span className="text-sky-400 tabular-nums font-bold">{telemetry.speed} px/s</span>
+          <span className="text-slate-400">VELOCITY:</span>
+          <span className="tabular-nums font-bold" style={{ color: theme.accent }}>
+            {telemetry.speed} px/s
+          </span>
         </div>
 
-        <div className="h-3 w-[1px] bg-white/[0.08]" />
+        <div className="h-3 w-[1px] bg-slate-200" />
 
         <div className="flex items-center gap-1.5">
-          <span className="text-slate-500">STRAIN:</span>
-          <span className="text-slate-200 tabular-nums font-medium">{(telemetry.strainReading * 100).toFixed(2)} µε</span>
+          <span className="text-slate-400">STRAIN:</span>
+          <span className="text-slate-800 tabular-nums font-medium">
+            {(telemetry.strainReading * 100).toFixed(2)} µε
+          </span>
         </div>
       </aside>
     </>

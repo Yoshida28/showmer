@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { SensingFieldCanvas } from './components/SensingFieldCanvas';
 import { Navigation } from './components/Navigation';
 import { TelemetryHUD } from './components/TelemetryHUD';
@@ -11,9 +11,11 @@ import { NervousSystemSection } from './components/NervousSystemSection';
 import { SystemActivationSection } from './components/SystemActivationSection';
 import { EmailCaptureSection } from './components/EmailCaptureSection';
 import { BrandFinaleSection } from './components/BrandFinaleSection';
-import { TelemetryState } from './types';
+import { PastelThemeId, TelemetryState } from './types';
+import { PASTEL_THEMES } from './utils/themes';
 
 export default function App() {
+  const [activeTheme, setActiveTheme] = useState<PastelThemeId>('sky');
   const [telemetry, setTelemetry] = useState<TelemetryState>({
     x: 0,
     y: 0,
@@ -25,6 +27,12 @@ export default function App() {
     strainReading: 0.014,
     frequency: 12.8,
   });
+
+  const themeConfig = PASTEL_THEMES[activeTheme] || PASTEL_THEMES.sky;
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', activeTheme);
+  }, [activeTheme]);
 
   const handleTelemetryUpdate = useCallback(
     (data: {
@@ -62,15 +70,22 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#010306] text-slate-100 selection:bg-sky-500/30 selection:text-sky-200 overflow-x-hidden font-sans">
+    <div
+      className="relative min-h-screen text-slate-900 overflow-x-hidden font-sans transition-colors duration-500"
+      style={{ backgroundColor: themeConfig.bgPrimary }}
+    >
       {/* Dynamic Background Particle & Disturbance Sensing Canvas */}
-      <SensingFieldCanvas onTelemetryUpdate={handleTelemetryUpdate} />
+      <SensingFieldCanvas onTelemetryUpdate={handleTelemetryUpdate} themeId={activeTheme} />
 
-      {/* Global Minimalist Header Navigation */}
-      <Navigation onScrollToSignup={() => scrollToSection('signup')} />
+      {/* Global Minimalist Header Navigation with Theme Switcher */}
+      <Navigation
+        onScrollToSignup={() => scrollToSection('signup')}
+        activeTheme={activeTheme}
+        onThemeChange={setActiveTheme}
+      />
 
       {/* Global Real-Time Telemetry HUD Overlay */}
-      <TelemetryHUD telemetry={telemetry} />
+      <TelemetryHUD telemetry={telemetry} themeId={activeTheme} />
 
       {/* Main Sections */}
       <main id="shomer-main-content" className="relative z-10">
@@ -78,35 +93,38 @@ export default function App() {
         <HeroSection
           onScrollToNext={() => scrollToSection('intelligence')}
           isMoving={telemetry.speed > 10}
+          themeId={activeTheme}
         />
 
         {/* SECTION 2: INVISIBLE INTELLIGENCE */}
-        <InvisibleIntelligenceSection />
+        <InvisibleIntelligenceSection themeId={activeTheme} />
 
         {/* SECTION 3: WHAT YOU SEE ISN'T EVERYTHING (Interactive Slider) */}
-        <PerceptionComparisonSection />
+        <PerceptionComparisonSection themeId={activeTheme} />
 
         {/* SECTION 4: MAKE A DISTURBANCE (Interactive Simulator) */}
-        <MakeDisturbanceSection />
+        <MakeDisturbanceSection themeId={activeTheme} />
 
-        {/* SECTION 5: MULTIPLE ENVIRONMENTS (5 Tall Cinematic Cards) */}
+        {/* SECTION 5: MULTIPLE ENVIRONMENTS (Clean Minimalist Cards) */}
         <MultipleEnvironmentsSection
           onScrollToSignup={() => scrollToSection('signup')}
+          themeId={activeTheme}
         />
 
         {/* SECTION 6: THE NERVOUS SYSTEM (Interactive Fiber Mesh) */}
         <NervousSystemSection
           onScrollToSignup={() => scrollToSection('signup')}
+          themeId={activeTheme}
         />
 
         {/* SECTION 7: SYSTEM ACTIVATION (Progress & Calibration) */}
-        <SystemActivationSection />
+        <SystemActivationSection themeId={activeTheme} />
 
         {/* SECTION 8: EMAIL CAPTURE (High Conversion Signal Transmission) */}
-        <EmailCaptureSection />
+        <EmailCaptureSection themeId={activeTheme} />
 
-        {/* SECTION 9: BRAND FINALE (Wordmark & Cinematic Statements) */}
-        <BrandFinaleSection />
+        {/* SECTION 9: BRAND FINALE (Wordmark & Minimalist Statements) */}
+        <BrandFinaleSection themeId={activeTheme} />
       </main>
     </div>
   );

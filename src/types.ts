@@ -1,3 +1,25 @@
+export type PastelThemeId = 'sky' | 'sage' | 'lavender' | 'rose' | 'oat';
+
+export interface PastelThemeConfig {
+  id: PastelThemeId;
+  name: string;
+  dotColor: string;
+  bgMain: string;
+  bgSecondary: string;
+  cardBg: string;
+  cardBorder: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  accent: string;
+  accentLight: string;
+  accentBorder: string;
+  badgeBg: string;
+  badgeText: string;
+  particleColor: string;
+  waveColor: string;
+}
+
 export interface TelemetryState {
   x: number;
   y: number;
